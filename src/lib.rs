@@ -7,6 +7,7 @@ use {
     fmt::{self, Display, Formatter},
     ops::Range,
     slice::Iter,
+    vec::IntoIter,
   },
   typed_builder::TypedBuilder,
 };

@@ -33,7 +33,7 @@ impl Display for Error {
 impl std::error::Error for Error {}
 
 impl IntoIterator for Error {
-  type IntoIter = std::vec::IntoIter<Diagnostic>;
+  type IntoIter = IntoIter<Diagnostic>;
   type Item = Diagnostic;
 
   fn into_iter(self) -> Self::IntoIter {
