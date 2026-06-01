@@ -19,10 +19,10 @@ fn file_patch_parser<'src>()
     .then(file_header_parser("+++ "))
     .then(hunk_parser().repeated().at_least(1).collect())
     .map(|(((metadata, old), new), hunks)| FilePatch {
-      metadata,
-      old,
-      new,
       hunks,
+      metadata,
+      new,
+      old,
     })
 }
 
@@ -46,8 +46,7 @@ fn file_header_parser<'src>(
     .map(|line: &str| {
       line
         .split_once('\t')
-        .map(|(path, _timestamp)| path)
-        .unwrap_or(line)
+        .map_or(line, |(path, _timestamp)| path)
         .to_string()
     })
 }
@@ -57,10 +56,10 @@ fn hunk_parser<'src>()
   hunk_header_parser()
     .then(hunk_line_parser().repeated().collect())
     .map(|((old, new, section), lines)| Hunk {
-      old,
-      new,
-      section,
       lines,
+      new,
+      old,
+      section,
     })
 }
 
@@ -94,8 +93,8 @@ fn line_range_parser<'src>()
   usize_parser()
     .then(just(',').ignore_then(usize_parser()).or_not())
     .map(|(start, count)| LineRange {
-      start,
       count: count.unwrap_or(1),
+      start,
     })
 }
 

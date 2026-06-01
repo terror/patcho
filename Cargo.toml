@@ -3,6 +3,15 @@ name = "patcho"
 version = "0.1.0"
 edition = "2024"
 
+[lints.rust]
+unreachable_pub = "deny"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+arbitrary-source-item-ordering = "deny"
+wildcard_imports = "allow"
+
 [dependencies]
 chumsky = "0.13.0"
 typed-builder = "0.23.2"

@@ -10,37 +10,37 @@ pub struct UnifiedDiff {
 #[derive(Clone, Debug, Eq, PartialEq, TypedBuilder)]
 pub struct FilePatch {
   #[builder(default)]
+  pub hunks: Vec<Hunk>,
+  #[builder(default)]
   pub metadata: Vec<String>,
   #[builder(setter(into))]
-  pub old: String,
-  #[builder(setter(into))]
   pub new: String,
-  #[builder(default)]
-  pub hunks: Vec<Hunk>,
+  #[builder(setter(into))]
+  pub old: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, TypedBuilder)]
 pub struct Hunk {
-  pub old: LineRange,
-  pub new: LineRange,
-  #[builder(default, setter(strip_option, into))]
-  pub section: Option<String>,
   #[builder(default)]
   pub lines: Vec<HunkLine>,
+  pub new: LineRange,
+  pub old: LineRange,
+  #[builder(default, setter(strip_option, into))]
+  pub section: Option<String>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LineRange {
-  pub start: usize,
   pub count: usize,
+  pub start: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum HunkLine {
-  Context(String),
   Add(String),
-  Remove(String),
+  Context(String),
   NoNewlineAtEndOfFile,
+  Remove(String),
 }
 
 pub type ParseError<'src> = Rich<'src, char>;
@@ -61,6 +61,11 @@ pub type ParseError<'src> = Rich<'src, char>;
 /// The parser consumes the entire input. If the input is empty, incomplete, or
 /// contains text that does not match the supported unified diff grammar, this
 /// returns the parser errors emitted while reading the input.
+///
+/// # Errors
+///
+/// Returns parser errors if `input` is empty, incomplete, or does not match the
+/// supported unified diff grammar.
 ///
 /// # Examples
 ///
