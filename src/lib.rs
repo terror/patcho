@@ -1,7 +1,5 @@
 use {
   chumsky::{error::Rich, prelude::*},
-  diagnostic::Diagnostic,
-  error::Error,
   parser::{ParseError, parser},
   std::{
     fmt::{self, Display, Formatter},
@@ -13,8 +11,8 @@ use {
 };
 
 pub use {
-  file_patch::FilePatch, hunk::Hunk, hunk_line::HunkLine,
-  line_range::LineRange, unified_diff::UnifiedDiff,
+  diagnostic::Diagnostic, error::Error, file_patch::FilePatch, hunk::Hunk,
+  hunk_line::HunkLine, line_range::LineRange, unified_diff::UnifiedDiff,
 };
 
 mod diagnostic;
