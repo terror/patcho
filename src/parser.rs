@@ -28,7 +28,10 @@ fn file_patch_parser<'src>()
 
 fn metadata_line_parser<'src>()
 -> impl Parser<'src, &'src str, String, extra::Err<ParseError<'src>>> {
-  line_text()
+  any()
+    .and_is(text::newline().not())
+    .repeated()
+    .to_slice()
     .and_is(just("--- ").not())
     .then_ignore(text::newline())
     .map(|line: &str| line.to_string())
@@ -38,8 +41,8 @@ fn file_header_parser<'src>(
   prefix: &'static str,
 ) -> impl Parser<'src, &'src str, String, extra::Err<ParseError<'src>>> {
   just(prefix)
-    .ignore_then(line_text())
-    .then_ignore(line_end())
+    .ignore_then(any().and_is(text::newline().not()).repeated().to_slice())
+    .then_ignore(text::newline().or(end()))
     .map(|line: &str| {
       line
         .split_once('\t')
@@ -72,8 +75,8 @@ fn hunk_header_parser<'src>() -> impl Parser<
     .then_ignore(just(" +"))
     .then(line_range_parser())
     .then_ignore(just(" @@"))
-    .then(line_text())
-    .then_ignore(line_end())
+    .then(any().and_is(text::newline().not()).repeated().to_slice())
+    .then_ignore(text::newline().or(end()))
     .map(|((old, new), section)| {
       let section = section.strip_prefix(' ').unwrap_or(section);
       let section = if section.is_empty() {
@@ -115,29 +118,19 @@ fn hunk_line_parser<'src>()
 -> impl Parser<'src, &'src str, HunkLine, extra::Err<ParseError<'src>>> {
   choice((
     just("\\ No newline at end of file")
-      .then_ignore(line_end())
+      .then_ignore(text::newline().or(end()))
       .to(HunkLine::NoNewlineAtEndOfFile),
     just(' ')
-      .ignore_then(line_text())
-      .then_ignore(line_end())
+      .ignore_then(any().and_is(text::newline().not()).repeated().to_slice())
+      .then_ignore(text::newline().or(end()))
       .map(|line: &str| HunkLine::Context(line.to_string())),
     just('+')
-      .ignore_then(line_text())
-      .then_ignore(line_end())
+      .ignore_then(any().and_is(text::newline().not()).repeated().to_slice())
+      .then_ignore(text::newline().or(end()))
       .map(|line: &str| HunkLine::Add(line.to_string())),
     just('-')
-      .ignore_then(line_text())
-      .then_ignore(line_end())
+      .ignore_then(any().and_is(text::newline().not()).repeated().to_slice())
+      .then_ignore(text::newline().or(end()))
       .map(|line: &str| HunkLine::Remove(line.to_string())),
   ))
-}
-
-fn line_text<'src>()
--> impl Parser<'src, &'src str, &'src str, extra::Err<ParseError<'src>>> {
-  any().and_is(text::newline().not()).repeated().to_slice()
-}
-
-fn line_end<'src>()
--> impl Parser<'src, &'src str, (), extra::Err<ParseError<'src>>> {
-  text::newline().or(end())
 }
