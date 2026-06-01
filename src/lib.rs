@@ -1,6 +1,21 @@
-use {chumsky::prelude::*, parser::parser, typed_builder::TypedBuilder};
+use {
+  chumsky::{error::Rich, prelude::*},
+  diagnostic::Diagnostic,
+  error::Error,
+  parser::parser,
+  std::{
+    fmt::{self, Display, Formatter},
+    ops::Range,
+    slice::Iter,
+  },
+  typed_builder::TypedBuilder,
+};
 
+mod diagnostic;
+mod error;
 mod parser;
+
+type ParseError<'src> = Rich<'src, char>;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UnifiedDiff {
@@ -43,8 +58,6 @@ pub enum HunkLine {
   Remove(String),
 }
 
-pub type ParseError<'src> = Rich<'src, char>;
-
 /// Parses a unified diff into a [`UnifiedDiff`].
 ///
 /// The input must contain one or more file patches. Each file patch may start
@@ -58,14 +71,13 @@ pub type ParseError<'src> = Rich<'src, char>;
 /// returned as [`HunkLine::Context`], [`HunkLine::Add`],
 /// [`HunkLine::Remove`], or [`HunkLine::NoNewlineAtEndOfFile`].
 ///
-/// The parser consumes the entire input. If the input is empty, incomplete, or
-/// contains text that does not match the supported unified diff grammar, this
-/// returns the parser errors emitted while reading the input.
+/// The parser consumes the entire input.
 ///
 /// # Errors
 ///
-/// Returns parser errors if `input` is empty, incomplete, or does not match the
-/// supported unified diff grammar.
+/// Returns [`Error`] if `input` is empty, incomplete, or does not match the
+/// supported unified diff grammar. The error contains one or more diagnostics
+/// with byte spans into the input.
 ///
 /// # Examples
 ///
@@ -91,6 +103,6 @@ pub type ParseError<'src> = Rich<'src, char>;
 /// assert_eq!(file.hunks[0].lines[0], HunkLine::Remove("foo".to_string()));
 /// assert_eq!(file.hunks[0].lines[1], HunkLine::Add("bar".to_string()));
 /// ```
-pub fn parse(input: &str) -> Result<UnifiedDiff, Vec<ParseError<'_>>> {
-  parser().parse(input).into_result()
+pub fn parse(input: &str) -> Result<UnifiedDiff, Error> {
+  parser().parse(input).into_result().map_err(Error::from)
 }
