@@ -35,6 +35,38 @@ impl Test {
 }
 
 #[test]
+fn parses_default_ranges_and_no_newline_marker() {
+  Test::new(indoc! {
+    "
+    --- foo
+    +++ bar
+    @@ -1 +1 @@
+    -foo
+    +bar
+    \\ No newline at end of file
+    "
+  })
+  .file(
+    FilePatch::builder()
+      .old("foo")
+      .new("bar")
+      .hunks(vec![
+        Hunk::builder()
+          .old(LineRange { start: 1, count: 1 })
+          .new(LineRange { start: 1, count: 1 })
+          .lines(vec![
+            HunkLine::Remove("foo".to_string()),
+            HunkLine::Add("bar".to_string()),
+            HunkLine::NoNewlineAtEndOfFile,
+          ])
+          .build(),
+      ])
+      .build(),
+  )
+  .run();
+}
+
+#[test]
 fn parses_git_diff_metadata_and_hunk_lines() {
   Test::new(indoc! {
     "
@@ -65,38 +97,6 @@ fn parses_git_diff_metadata_and_hunk_lines() {
             HunkLine::Context("foo".to_string()),
             HunkLine::Remove("bar".to_string()),
             HunkLine::Add("baz".to_string()),
-          ])
-          .build(),
-      ])
-      .build(),
-  )
-  .run();
-}
-
-#[test]
-fn parses_default_ranges_and_no_newline_marker() {
-  Test::new(indoc! {
-    "
-    --- foo
-    +++ bar
-    @@ -1 +1 @@
-    -foo
-    +bar
-    \\ No newline at end of file
-    "
-  })
-  .file(
-    FilePatch::builder()
-      .old("foo")
-      .new("bar")
-      .hunks(vec![
-        Hunk::builder()
-          .old(LineRange { start: 1, count: 1 })
-          .new(LineRange { start: 1, count: 1 })
-          .lines(vec![
-            HunkLine::Remove("foo".to_string()),
-            HunkLine::Add("bar".to_string()),
-            HunkLine::NoNewlineAtEndOfFile,
           ])
           .build(),
       ])
