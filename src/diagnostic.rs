@@ -6,18 +6,6 @@ pub struct Diagnostic {
   pub span: Range<usize>,
 }
 
-impl Diagnostic {
-  #[must_use]
-  pub fn message(&self) -> &str {
-    &self.message
-  }
-
-  #[must_use]
-  pub fn span(&self) -> &Range<usize> {
-    &self.span
-  }
-}
-
 impl Display for Diagnostic {
   fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
     write!(
