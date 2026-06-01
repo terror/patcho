@@ -1,5 +1,7 @@
 use super::*;
 
+pub(crate) type ParseError<'src> = Rich<'src, char>;
+
 fn file_header_parser<'src>(
   prefix: &'static str,
 ) -> impl Parser<'src, &'src str, String, extra::Err<ParseError<'src>>> {

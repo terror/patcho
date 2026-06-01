@@ -2,7 +2,7 @@ use {
   chumsky::{error::Rich, prelude::*},
   diagnostic::Diagnostic,
   error::Error,
-  parser::parser,
+  parser::{ParseError, parser},
   std::{
     fmt::{self, Display, Formatter},
     ops::Range,
@@ -12,52 +12,19 @@ use {
   typed_builder::TypedBuilder,
 };
 
+pub use {
+  file_patch::FilePatch, hunk::Hunk, hunk_line::HunkLine,
+  line_range::LineRange, unified_diff::UnifiedDiff,
+};
+
 mod diagnostic;
 mod error;
+mod file_patch;
+mod hunk;
+mod hunk_line;
+mod line_range;
 mod parser;
-
-type ParseError<'src> = Rich<'src, char>;
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct UnifiedDiff {
-  pub files: Vec<FilePatch>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, TypedBuilder)]
-pub struct FilePatch {
-  #[builder(default)]
-  pub hunks: Vec<Hunk>,
-  #[builder(default)]
-  pub metadata: Vec<String>,
-  #[builder(setter(into))]
-  pub new: String,
-  #[builder(setter(into))]
-  pub old: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, TypedBuilder)]
-pub struct Hunk {
-  #[builder(default)]
-  pub lines: Vec<HunkLine>,
-  pub new: LineRange,
-  pub old: LineRange,
-  #[builder(default, setter(strip_option, into))]
-  pub section: Option<String>,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct LineRange {
-  pub count: usize,
-  pub start: usize,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum HunkLine {
-  Add(String),
-  Context(String),
-  NoNewlineAtEndOfFile,
-  Remove(String),
-}
+mod unified_diff;
 
 /// Parses a unified diff into a [`UnifiedDiff`].
 ///
